@@ -61,16 +61,34 @@ function setup() {
 function draw() {
   background(0);
 
-  // SVG background
-  push();
-  resetMatrix();
-  translate(0, 0, -500);
-  noStroke();
-  tint(255, 210);
-  texture(bgImg);
-  plane(width, height);
-  noTint();
-  pop();
+// Full-screen SVG background
+push();
+resetMatrix();
+translate(0, 0, -900);
+
+// keep image covering the full viewport
+let bgAspect = bgImg.width / bgImg.height;
+let screenAspect = width / height;
+
+let bgW, bgH;
+
+if (screenAspect > bgAspect) {
+  bgW = width;
+  bgH = width / bgAspect;
+} else {
+  bgH = height;
+  bgW = height * bgAspect;
+}
+
+// subtle world-colour treatment
+tint(120, 170, 255, 230);
+
+noStroke();
+texture(bgImg);
+plane(bgW, bgH);
+
+noTint();
+pop();
 
   freq = freqSlider.value();
   amp = ampSlider.value();
