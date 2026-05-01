@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>3D Cymatics — Glow Worms (Faster)</title>
+  <title>3D Cymatics</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
 </head>
 
 <body style="margin:0; overflow:hidden; background:black;">
 <script>
+let bgImg;
+
 let osc;
 let playing = false;
 
@@ -18,6 +20,10 @@ let detail = 60;
 
 let freqSlider, ampSlider, symmetrySlider, detailSlider;
 let freqLabel;
+
+function preload() {
+  bgImg = loadImage('bg.svg');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -55,6 +61,17 @@ function setup() {
 function draw() {
   background(0);
 
+  // SVG background
+  push();
+  resetMatrix();
+  translate(0, 0, -500);
+  noStroke();
+  tint(255, 210);
+  texture(bgImg);
+  plane(width, height);
+  noTint();
+  pop();
+
   freq = freqSlider.value();
   amp = ampSlider.value();
   symmetry = symmetrySlider.value();
@@ -69,13 +86,10 @@ function draw() {
 
   orbitControl();
 
-  // Faster rotation
   rotateY(frameCount * 0.006);
   rotateX(frameCount * 0.003);
 
   let baseRadius = min(width, height) * 0.24;
-
-  // Faster internal motion
   let time = frameCount * 0.045;
 
   blendMode(ADD);
@@ -92,17 +106,14 @@ function draw() {
       let glow = map(p.energy, -1, 1, 0.2, 1);
       glow = constrain(glow, 0, 1);
 
-      // Bigger soft glow
       stroke(255, 255, 255, 25 * glow);
       strokeWeight(14 * glow);
       point(p.x, p.y, p.z);
 
-      // Mid glow
       stroke(255, 255, 255, 70 * glow);
       strokeWeight(6 * glow);
       point(p.x, p.y, p.z);
 
-      // Core
       stroke(255, 255, 255, 180 * glow);
       strokeWeight(1.5);
       point(p.x, p.y, p.z);
