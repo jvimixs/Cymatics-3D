@@ -1,100 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>3D Cymatics — Stable Glow Version</title>
+  <title>3D Cymatics — Designed UI</title>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-image: url("bg.svg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: black;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 260px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .label {
+      font-size: 13px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #000;
+    }
+
+    input[type=range] {
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: #000;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
-<body style="margin:0; overflow:hidden; background:black;">
-<script>
-let bgImg;
+<body>
 
+<div class="panel">
+  <button id="playBtn">Play / Stop</button>
+
+  <div class="value" id="freqValue">420 Hz</div>
+  <div class="label">Frequency</div>
+  <input id="freqSlider" type="range" min="80" max="700" value="420">
+
+  <div class="label">Amplitude</div>
+  <input id="ampSlider" type="range" min="0" max="1" step="0.01" value="0.6">
+
+  <div class="label">Symmetry</div>
+  <input id="symSlider" type="range" min="2" max="12" value="5">
+
+  <div class="label">Detail</div>
+  <input id="detSlider" type="range" min="15" max="45" value="35">
+</div>
+
+<script>
 let osc;
 let playing = false;
 
-let freq = 420;
-let amp = 0.6;
-let symmetry = 5;
-let detail = 35;
-
-let freqSlider, ampSlider, symmetrySlider, detailSlider;
-let freqLabel;
-
-function preload() {
-  bgImg = loadImage('bg.jpg');
-}
+let freqSlider = document.getElementById("freqSlider");
+let ampSlider = document.getElementById("ampSlider");
+let symSlider = document.getElementById("symSlider");
+let detSlider = document.getElementById("detSlider");
+let freqValue = document.getElementById("freqValue");
+let playBtn = document.getElementById("playBtn");
 
 function setup() {
+  setAttributes('alpha', true);
   createCanvas(windowWidth, windowHeight, WEBGL);
 
   osc = new p5.Oscillator('sine');
 
-  createButton('Play / Stop')
-    .position(20, 20)
-    .mousePressed(toggleSound);
-
-  freqLabel = createP('Frequency: ' + freq + ' Hz')
-    .position(20, 45)
-    .style('color', 'white');
-
-  freqSlider = createSlider(80, 700, freq, 1)
-    .position(20, 85)
-    .style('width', '240px');
-
-  createP('Amplitude').position(20, 100).style('color', 'white');
-  ampSlider = createSlider(0, 1, amp, 0.01)
-    .position(20, 140)
-    .style('width', '240px');
-
-  createP('Symmetry').position(20, 155).style('color', 'white');
-  symmetrySlider = createSlider(2, 12, symmetry, 1)
-    .position(20, 195)
-    .style('width', '240px');
-
-  createP('Detail').position(20, 210).style('color', 'white');
-  detailSlider = createSlider(15, 45, detail, 1)
-    .position(20, 250)
-    .style('width', '240px');
+  playBtn.onclick = toggleSound;
 }
 
 function draw() {
-  background(0);
+  clear();
 
-  // Background image
-  if (bgImg) {
-    push();
-    resetMatrix();
-    translate(0, 0, -900);
+  let freq = Number(freqSlider.value);
+  let amp = Number(ampSlider.value);
+  let symmetry = Number(symSlider.value);
+  let detail = Number(detSlider.value);
 
-    let bgAspect = bgImg.width / bgImg.height;
-    let screenAspect = width / height;
-
-    let bgW, bgH;
-
-    if (screenAspect > bgAspect) {
-      bgW = width;
-      bgH = width / bgAspect;
-    } else {
-      bgH = height;
-      bgW = height * bgAspect;
-    }
-
-    tint(120, 190, 255, 220);
-    noStroke();
-    texture(bgImg);
-    plane(bgW, bgH);
-    noTint();
-
-    pop();
-  }
-
-  freq = freqSlider.value();
-  amp = ampSlider.value();
-  symmetry = symmetrySlider.value();
-  detail = detailSlider.value();
-
-  freqLabel.html('Frequency: ' + freq + ' Hz');
+  freqValue.innerText = freq + " Hz";
 
   if (playing) {
     osc.freq(freq);
@@ -110,25 +128,24 @@ function draw() {
   let time = frameCount * 0.045;
 
   blendMode(ADD);
-  noFill();
 
   for (let lat = 0; lat <= detail; lat++) {
     let theta = map(lat, 0, detail, 0, PI);
 
     for (let lon = 0; lon <= detail; lon++) {
       let phi = map(lon, 0, detail, 0, TWO_PI);
+      let p = shapePoint(theta, phi, baseRadius, time, freq, amp, symmetry);
 
-      let p = shapePoint(theta, phi, baseRadius, time);
+      let glow = map(p.energy, -1, 1, 0.3, 1.2);
+      glow = constrain(glow, 0, 1.2);
 
-      let glow = map(p.energy, -1, 1, 0.2, 1);
-      glow = constrain(glow, 0, 1);
-
-      stroke(255, 255, 255, 35 * glow);
-      strokeWeight(8 * glow);
+      // brighter, more luminous
+      stroke(255, 80 * glow);
+      strokeWeight(10 * glow);
       point(p.x, p.y, p.z);
 
-      stroke(255, 255, 255, 160 * glow);
-      strokeWeight(1.2);
+      stroke(255, 220 * glow);
+      strokeWeight(2.2);
       point(p.x, p.y, p.z);
     }
   }
@@ -136,7 +153,7 @@ function draw() {
   blendMode(BLEND);
 }
 
-function shapePoint(theta, phi, baseRadius, time) {
+function shapePoint(theta, phi, baseRadius, time, freq, amp, symmetry) {
   let wave1 = sin(theta * symmetry + time);
   let wave2 = cos(phi * symmetry * 0.8 - time * 1.1);
   let wave3 = sin((theta + phi) * freq * 0.008);
@@ -146,11 +163,12 @@ function shapePoint(theta, phi, baseRadius, time) {
 
   let r = baseRadius + displacement;
 
-  let x = r * sin(theta) * cos(phi);
-  let y = r * cos(theta);
-  let z = r * sin(theta) * sin(phi);
-
-  return { x, y, z, energy };
+  return {
+    x: r * sin(theta) * cos(phi),
+    y: r * cos(theta),
+    z: r * sin(theta) * sin(phi),
+    energy: energy
+  };
 }
 
 function toggleSound() {
@@ -170,5 +188,6 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 </script>
+
 </body>
 </html>
