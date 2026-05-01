@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>3D Cymatics — World Background</title>
+  <title>3D Cymatics — Stable Glow Version</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
 </head>
@@ -16,13 +16,13 @@ let playing = false;
 let freq = 420;
 let amp = 0.6;
 let symmetry = 5;
-let detail = 60;
+let detail = 35;
 
 let freqSlider, ampSlider, symmetrySlider, detailSlider;
 let freqLabel;
 
 function preload() {
-  bgImg = loadImage('bg.svg');
+  bgImg = loadImage('bg.jpg');
 }
 
 function setup() {
@@ -53,7 +53,7 @@ function setup() {
     .style('width', '240px');
 
   createP('Detail').position(20, 210).style('color', 'white');
-  detailSlider = createSlider(20, 90, detail, 1)
+  detailSlider = createSlider(15, 45, detail, 1)
     .position(20, 250)
     .style('width', '240px');
 }
@@ -61,33 +61,33 @@ function setup() {
 function draw() {
   background(0);
 
-  // Full-screen SVG background
-  push();
-  resetMatrix();
-  translate(0, 0, -900);
+  // Background image
+  if (bgImg) {
+    push();
+    resetMatrix();
+    translate(0, 0, -900);
 
-  let bgAspect = bgImg.width / bgImg.height;
-  let screenAspect = width / height;
+    let bgAspect = bgImg.width / bgImg.height;
+    let screenAspect = width / height;
 
-  let bgW, bgH;
+    let bgW, bgH;
 
-  if (screenAspect > bgAspect) {
-    bgW = width;
-    bgH = width / bgAspect;
-  } else {
-    bgH = height;
-    bgW = height * bgAspect;
+    if (screenAspect > bgAspect) {
+      bgW = width;
+      bgH = width / bgAspect;
+    } else {
+      bgH = height;
+      bgW = height * bgAspect;
+    }
+
+    tint(120, 190, 255, 220);
+    noStroke();
+    texture(bgImg);
+    plane(bgW, bgH);
+    noTint();
+
+    pop();
   }
-
-  // blue-green "world" colour treatment
-  tint(120, 190, 255, 230);
-
-  noStroke();
-  texture(bgImg);
-  plane(bgW, bgH);
-
-  noTint();
-  pop();
 
   freq = freqSlider.value();
   amp = ampSlider.value();
@@ -123,16 +123,12 @@ function draw() {
       let glow = map(p.energy, -1, 1, 0.2, 1);
       glow = constrain(glow, 0, 1);
 
-      stroke(255, 255, 255, 25 * glow);
-      strokeWeight(14 * glow);
+      stroke(255, 255, 255, 35 * glow);
+      strokeWeight(8 * glow);
       point(p.x, p.y, p.z);
 
-      stroke(255, 255, 255, 70 * glow);
-      strokeWeight(6 * glow);
-      point(p.x, p.y, p.z);
-
-      stroke(255, 255, 255, 180 * glow);
-      strokeWeight(1.5);
+      stroke(255, 255, 255, 160 * glow);
+      strokeWeight(1.2);
       point(p.x, p.y, p.z);
     }
   }
